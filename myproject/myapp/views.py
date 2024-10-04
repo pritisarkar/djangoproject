@@ -38,3 +38,47 @@ def fetch_employee(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+@csrf_exempt
+def update_employee(request):
+    try:
+        data = json.loads(request.body)
+        employee_id = data.get('id')
+        new_username = data.get('username')
+        if not employee_id or not new_username:
+            return JsonResponse({'status':'error','message': 'username are required.'},status = 400)
+        try:
+            employee = Employee.objects.get(id=employee_id)
+        except Employee.DoesnotExist:
+            return JsonResponse({'status': 'error', 'message': 'Employee not found.'}, status=404)
+        employee.username = new_username
+        employee.save()
+        return JsonResponse({'status':'done','message':'updated successfully.'},status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'}, status=400)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@csrf_exempt
+def delete_employee(request):
+    if request.method != 'DELETE':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=405)
+    try:
+        data = json.loads(request.body)
+        employee_id = data.get('id')
+        if not employee_id:
+            return JsonResponse({'status': 'error', 'message': 'Employee ID is required.'}, status=400)    
+        try:
+            employee = Employee.objects.get(id=employee_id)
+            employee.delete()
+            return JsonResponse({'status': 'done', 'message': 'Deleted successfully.'}, status=200)
+        except Employee.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Employee not found.'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'}, status=400)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
